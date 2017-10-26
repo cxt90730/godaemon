@@ -1,13 +1,14 @@
 package main
 
 import (
-	"net/http"
-	"log"
 	"fmt"
+	daemon "github.com/cxt90730/godaemon"
+	"log"
+	"net/http"
 )
 
 func main() {
-
+	daemon.RunDaemon("mypid.pid", HttpServer)
 }
 
 func HttpServer() {
@@ -18,10 +19,3 @@ func route(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.URL.Path)
 	fmt.Fprint(w, "Hello World\n")
 }
-
-func checkError(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
