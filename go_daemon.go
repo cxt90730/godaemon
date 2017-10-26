@@ -8,6 +8,7 @@ import (
 	"syscall"
 )
 
+// Run the process as a daemon with pid
 func RunDaemon(pid string, daemon func()) {
 	File, err := os.OpenFile(pid, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
@@ -17,7 +18,6 @@ func RunDaemon(pid string, daemon func()) {
 	info, _ := File.Stat()
 	if info.Size() != 0 {
 		fmt.Println("pid file is exist")
-		log.Println("pid file is exist")
 		return
 	}
 	if os.Getppid() != 1 {
@@ -31,16 +31,15 @@ func RunDaemon(pid string, daemon func()) {
 	go daemon()
 	for {
 		s := <-c
-		fmt.Println(s)
 		switch s {
 		case os.Interrupt:
-			fmt.Println("SIGINT")
+			//fmt.Println("SIGINT")
 			Exit(File)
 		case os.Kill:
-			fmt.Println("SIGKILL")
+			//fmt.Println("SIGKILL")
 			Exit(File)
 		case syscall.SIGTERM:
-			fmt.Println("SIGTERM")
+			//fmt.Println("SIGTERM")
 			Exit(File)
 		//case syscall.SIGUSR2:
 		//	fmt.Println("SIGUSR2")
@@ -55,5 +54,4 @@ func RunDaemon(pid string, daemon func()) {
 func Exit(F *os.File) {
 	F.Close()
 	os.Remove(F.Name())
-	fmt.Println("bye")
 }
