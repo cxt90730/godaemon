@@ -28,8 +28,9 @@ func RunDaemon(pidFile string, daemon func(), logger *levelLogger.LevelLogger) e
 		return err
 	}
 	File.WriteString(fmt.Sprint(os.Getpid()))
-	c := make(chan os.Signal, 1)
+	c := make(chan os.Signal)
 	signal.Notify(c)
+	printLog(levelLogger.LogInfo, "Daemon is running...")
 	go daemon()
 	for {
 		s := <-c
