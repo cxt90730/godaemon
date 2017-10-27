@@ -2,22 +2,24 @@ package godaemon
 
 import (
 	"fmt"
-	"log"
+	levelLogger "github.com/cxt90730/LevelLogger-go"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
-func RunDaemon(pid string, daemon func()) {
-	File, err := os.OpenFile(pid, os.O_RDWR|os.O_CREATE, 0644)
+var dLogger *levelLogger.LevelLogger
+
+func RunDaemon(pidFile string, daemon func(), logger *levelLogger.LevelLogger) {
+	dLogger = logger
+	File, err := os.OpenFile(pidFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
-		log.Println(err)
+		printLog(levelLogger.LogError, err)
 		return
 	}
 	info, _ := File.Stat()
 	if info.Size() != 0 {
-		fmt.Println("pid file is exist")
-		log.Println("pid file is exist")
+		printLog(levelLogger.LogError, "pid file is exist")
 		return
 	}
 	if os.Getppid() != 1 {
@@ -34,26 +36,31 @@ func RunDaemon(pid string, daemon func()) {
 		fmt.Println(s)
 		switch s {
 		case os.Interrupt:
-			fmt.Println("SIGINT")
+			printLog(levelLogger.LogInfo, "RECV SIGINT")
 			Exit(File)
 		case os.Kill:
-			fmt.Println("SIGKILL")
+			printLog(levelLogger.LogInfo, "RECV SIGKILL")
 			Exit(File)
 		case syscall.SIGTERM:
-			fmt.Println("SIGTERM")
+			printLog(levelLogger.LogInfo, "RECV SIGTERM")
 			Exit(File)
 		//case syscall.SIGUSR2:
 		//	fmt.Println("SIGUSR2")
 		default:
-			fmt.Println(s)
+			printLog(levelLogger.LogInfo, s)
 			Exit(File)
 		}
 	}
+}
 
+func printLog(level int, v ...interface{}) {
+	if dLogger != nil {
+		dLogger.PrintLevelLog(level, v...)
+	}
 }
 
 func Exit(F *os.File) {
 	F.Close()
 	os.Remove(F.Name())
-	fmt.Println("bye")
+	printLog(levelLogger.LogInfo, "Daemon exit!")
 }
