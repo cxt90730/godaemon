@@ -10,22 +10,22 @@ import (
 
 var dLogger *levelLogger.LevelLogger
 
-func RunDaemon(pidFile string, daemon func(), logger *levelLogger.LevelLogger) {
+func RunDaemon(pidFile string, daemon func(), logger *levelLogger.LevelLogger) error {
 	dLogger = logger
 	File, err := os.OpenFile(pidFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		printLog(levelLogger.LogError, err)
-		return
+		return err
 	}
 	info, _ := File.Stat()
 	if info.Size() != 0 {
 		printLog(levelLogger.LogError, "pid file is exist")
-		return
+		return err
 	}
 	if os.Getppid() != 1 {
 		args := append([]string{os.Args[0]}, os.Args[1:]...)
 		os.StartProcess(os.Args[0], args, &os.ProcAttr{Files: []*os.File{os.Stdin, os.Stdout, os.Stderr}})
-		return
+		return err
 	}
 	File.WriteString(fmt.Sprint(os.Getpid()))
 	c := make(chan os.Signal, 1)
