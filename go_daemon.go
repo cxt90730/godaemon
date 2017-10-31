@@ -10,7 +10,7 @@ import (
 
 var dLogger *levelLogger.LevelLogger
 
-func RunDaemon(pidFile string, daemon func(), logger *levelLogger.LevelLogger) error {
+func RunDaemon(pidFile string, daemon func(), closeChan chan bool, logger *levelLogger.LevelLogger) error {
 	dLogger = logger
 	File, err := os.OpenFile(pidFile, os.O_RDWR|os.O_CREATE, 0755)
 	if err != nil {
@@ -55,6 +55,11 @@ func RunDaemon(pidFile string, daemon func(), logger *levelLogger.LevelLogger) e
 			Exit(File)
 		}
 	}
+	if closeChan != nil {
+		closeChan <- true
+		return nil
+	}
+	return nil
 }
 
 func printLog(level int, v ...interface{}) {
