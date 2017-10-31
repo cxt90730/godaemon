@@ -14,11 +14,13 @@ func RunDaemon(pidFile string, daemon func(), closeChan chan bool, logger *level
 	dLogger = logger
 	File, err := os.OpenFile(pidFile, os.O_RDWR|os.O_CREATE, 0755)
 	if err != nil {
+		fmt.Println("open pid file error:", err)
 		printLog(levelLogger.LogError, err)
 		return err
 	}
 	info, _ := File.Stat()
 	if info.Size() != 0 {
+		fmt.Println("error: pid file is exist!")
 		printLog(levelLogger.LogError, "pid file is exist")
 		return err
 	}
